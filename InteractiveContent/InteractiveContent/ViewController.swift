@@ -14,6 +14,12 @@ class ViewController: UIViewController, ARSCNViewDelegate {
 
     @IBOutlet var sceneView: ARSCNView!
     
+    /// 模糊效果
+    @IBOutlet weak var toast: UIVisualEffectView!
+    
+    /// 提示
+    @IBOutlet weak var label: UILabel!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
