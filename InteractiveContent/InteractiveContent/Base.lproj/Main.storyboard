@@ -20,6 +20,11 @@
                         <subviews>
                             <arscnView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="j5f-Qs-Rmq">
                                 <rect key="frame" x="0.0" y="20" width="375" height="647"/>
+                                <gestureRecognizers/>
+                                <connections>
+                                    <outletCollection property="gestureRecognizers" destination="N3f-f7-66Y" appends="YES" id="n22-Y1-Oyw"/>
+                                    <outletCollection property="gestureRecognizers" destination="PcF-5T-M6d" appends="YES" id="6uf-2Q-UT6"/>
+                                </connections>
                             </arscnView>
                             <visualEffectView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="54S-Kb-Ow7" userLabel="Toast">
                                 <rect key="frame" x="37" y="587" width="300" height="30"/>
@@ -59,10 +64,21 @@
                     </view>
                     <connections>
                         <outlet property="label" destination="dm1-9m-kK0" id="h7f-Hg-9eh"/>
+                        <outlet property="sceneView" destination="j5f-Qs-Rmq" id="6NN-9y-5MU"/>
                         <outlet property="toast" destination="54S-Kb-Ow7" id="qJi-Ji-dhG"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="SZV-WD-TEh" sceneMemberID="firstResponder"/>
+                <tapGestureRecognizer id="N3f-f7-66Y">
+                    <connections>
+                        <action selector="didTap:" destination="BV1-FR-VrT" id="lCm-lI-oFe"/>
+                    </connections>
+                </tapGestureRecognizer>
+                <panGestureRecognizer minimumNumberOfTouches="1" id="PcF-5T-M6d">
+                    <connections>
+                        <action selector="didPan:" destination="BV1-FR-VrT" id="8mD-jB-UgA"/>
+                    </connections>
+                </panGestureRecognizer>
             </objects>
             <point key="canvasLocation" x="117.59999999999999" y="118.29085457271366"/>
         </scene>
