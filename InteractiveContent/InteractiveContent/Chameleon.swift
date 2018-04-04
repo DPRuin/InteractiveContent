@@ -40,6 +40,25 @@ class Chameleon: SCNScene {
     private var headIsMoving: Bool = false
     private var chameleonIsTurning: Bool = false
     
+    /// ??
+    private var focusNodeBasePosition = simd_float3(0, 0.1, 0.25)
+    private var leftEyeTargetOffset = simd_float3()
+    private var rightEyeTargetOffset = simd_float3()
+    private var currentTonguePosition = simd_float3()
+    private var relativeTongueStickOutFactor: Float = 0
+    private var readyToShootCounter: Int = 0
+    private var triggerTurnLeftCounter: Int = 0
+    private var triggerTurnRightCounter: Int = 0
+    /// 最后的相对位置
+    private var lastRelativePosition: RelativeCameraPositionToHead = .tooHighOrLow
+    private var distance: Float = Float.greatestFiniteMagnitude
+    private var didEnterTargetLockDistance = false
+    /// 嘴部动画状态
+    private var mounthAnimationState: MouthAnimationState = .mouthClosed
+    
+    
+    private var changeColorTimer: Timer?
+    private var lastColorFromEnvironment = SCNVector3(130.0 / 255.0, 196.0 / 255.0, 174.0 / 255.0)
     
     // Enums
     /// 相机位置相对头部的状态
@@ -58,7 +77,6 @@ class Chameleon: SCNScene {
             }
         }
     }
-    
     
     /// 距离
     private enum Distance {
