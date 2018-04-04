@@ -14,18 +14,18 @@ class Chameleon: SCNScene {
     // 特殊节点控制模型动画
     private let contentRootNode = SCNNode()
     private var geometryRoot: SCNNode!
-    private let head: SCNNode!
-    private let leftEye: SCNNode!
-    private let rightEye: SCNNode!
+    private var head: SCNNode!
+    private var leftEye: SCNNode!
+    private var rightEye: SCNNode!
     /// 下巴
-    private let jaw: SCNNode!
+    private var jaw: SCNNode!
     /// 舌尖
-    private let tongueTip: SCNNode!
-    private let focusOfTheHead: SCNNode!
-    private let focusOfLeftEye: SCNNode!
-    private let focusOfRightEye: SCNNode!
+    private var tongueTip: SCNNode!
+    private var focusOfTheHead: SCNNode!
+    private var focusOfLeftEye: SCNNode!
+    private var focusOfRightEye: SCNNode!
     /// 舌头休息
-    private let tongueRestPositionNode: SCNNode!
+    private var tongueRestPositionNode: SCNNode!
     /// 皮肤
     private var skin: SCNMaterial!
     
@@ -34,7 +34,7 @@ class Chameleon: SCNScene {
     private var turnLeftAnimation: SCNAnimation?
     private var turnRightAnimation: SCNAnimation?
     
-    // State variables 状态变量
+    // 状态变量
     private var modelLoaded: Bool = false
     private var headIsMoving: Bool = false
     private var chameleonIsTurning: Bool = false
