@@ -11,7 +11,32 @@ import SceneKit
 import ARKit
 
 extension ARSCNView {
-   
+    
+    /// 平均颜色从环境中, 返回颜色向量
+    func averageColorFromEnvironment(at screenPos: SCNVector3) -> SCNVector3 {
+        var colorVector = SCNVector3()
+        // 1.获取没有内容的scene的截图
+        scene.rootNode.isHidden = true
+        // 屏幕截图 snapshot()是线程安全的可以随时调用
+        let screenshot: UIImage = snapshot()
+        scene.rootNode.isHidden = false
+        
+        // 2.从屏幕的位置使用一小片
+        let scale = UIScreen.main.scale
+        let patchSize: CGFloat = 100 * scale
+        
+        let screenPoint = CGPoint(x: (CGFloat(screenPos.x) - patchSize / 2) * scale,
+                                  y: (CGFloat(screenPos.y) - patchSize / 2) * scale)
+        let cropRect = CGRect(origin: screenPoint, size: CGSize(width: patchSize, height: patchSize))
+        // 裁切
+        if let cropedCGImage = screenshot.cgImage?.cropping(to: cropRect) {
+            let image = UIImage(cgImage: cropedCGImage)
+            if let avgcolor = image.averageColor() {
+                colorVector = SCNVector3(avgcolor.red, avgcolor.green, avgcolor.blue)
+            }
+        }
+        return colorVector
+    }
 }
 
 extension UIImage {
