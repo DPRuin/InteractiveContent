@@ -127,6 +127,9 @@ class Chameleon: SCNScene {
         // 隐藏
         hide()
         
+        // 设置节点
+        setupSpecialNodes()
+        
     }
     
     // MARK: - public api
@@ -147,6 +150,12 @@ class Chameleon: SCNScene {
 // MARK: - Helper functions
 
 extension Chameleon {
+    
+    
+    /// 设置节点
+    private func setupSpecialNodes() {
+        
+    }
     
     /// 重置状态
     private func resetState() {

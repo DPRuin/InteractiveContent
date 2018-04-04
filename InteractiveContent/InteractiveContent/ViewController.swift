@@ -92,5 +92,9 @@ class ViewController: UIViewController {
     
 }
 
+extension UIViewController: ARSCNViewDelegate {
+    
+}
+
 
 
