@@ -39,6 +39,10 @@ extension ARSCNView {
     }
 }
 
+extension CAAnimation {
+    
+}
+
 extension UIImage {
     
     /// 平均颜色
