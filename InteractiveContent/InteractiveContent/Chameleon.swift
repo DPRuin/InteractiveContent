@@ -11,9 +11,12 @@ import SceneKit
 
 class Chameleon: SCNScene {
 
-    // Special nodes used to control animations of the model
+    // 特殊节点控制模型动画
     private let contentRootNode = SCNNode()
     private var geometryRoot: SCNNode!
+    
+    
+    
     private var skin: SCNMaterial!
     
     // Animations
