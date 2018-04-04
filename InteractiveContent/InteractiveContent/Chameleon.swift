@@ -45,9 +45,13 @@ class Chameleon: SCNScene {
     private var leftEyeTargetOffset = simd_float3()
     private var rightEyeTargetOffset = simd_float3()
     private var currentTonguePosition = simd_float3()
+    /// 相应吐舌头因子
     private var relativeTongueStickOutFactor: Float = 0
+    /// 准备吐舌头计数器
     private var readyToShootCounter: Int = 0
+    /// 触发左转计数器
     private var triggerTurnLeftCounter: Int = 0
+    /// 触发右转计数器
     private var triggerTurnRightCounter: Int = 0
     /// 最后的相对位置
     private var lastRelativePosition: RelativeCameraPositionToHead = .tooHighOrLow
@@ -56,7 +60,7 @@ class Chameleon: SCNScene {
     /// 嘴部动画状态
     private var mounthAnimationState: MouthAnimationState = .mouthClosed
     
-    
+    /// 更改颜色计时器
     private var changeColorTimer: Timer?
     private var lastColorFromEnvironment = SCNVector3(130.0 / 255.0, 196.0 / 255.0, 174.0 / 255.0)
     
@@ -120,12 +124,16 @@ class Chameleon: SCNScene {
         }
         self.rootNode.addChildNode(contentRootNode)
         contentRootNode.addChildNode(wrapperNode)
+        // 隐藏
+        hide()
         
     }
     
     // MARK: - public api
     func hide() {
         contentRootNode.isHidden = true
+        // 重置状态
+        resetState()
     }
     
     func show() {
@@ -142,6 +150,19 @@ extension Chameleon {
     
     /// 重置状态
     private func resetState() {
+        relativeTongueStickOutFactor = 0
+        
+        mounthAnimationState = .mouthClosed
+        
+        readyToShootCounter = 0
+        triggerTurnLeftCounter = 0
+        triggerTurnRightCounter = 0
+        
+        // 清空计时器
+        if changeColorTimer != nil {
+            changeColorTimer?.invalidate()
+            changeColorTimer = nil
+        }
         
     }
 }
