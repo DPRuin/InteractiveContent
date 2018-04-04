@@ -12,6 +12,7 @@ import SceneKit
 class Chameleon: SCNScene {
 
     // 特殊节点控制模型动画
+    /// 根节点
     private let contentRootNode = SCNNode()
     private var geometryRoot: SCNNode!
     private var head: SCNNode!
@@ -40,16 +41,49 @@ class Chameleon: SCNScene {
     private var chameleonIsTurning: Bool = false
     
     
+    // Enums
+    /// 相机位置相对头部的状态
+    private enum RelativeCameraPositionToHead {
+        case withinFieldOfView(Distance)
+        case needToTurnLeft
+        case needToTurnRight
+        case tooHighOrLow
+        
+        var rawValue: Int {
+            switch self {
+            case .withinFieldOfView(_): return 0
+            case .needToTurnLeft: return 1
+            case .needToTurnRight: return 2
+            case .tooHighOrLow : return 3
+            }
+        }
+    }
+    
+    
+    /// 距离
+    private enum Distance {
+        case outsideTargetLockDistance  // 超出目标锁定距离
+        case withinTargetLockDistance   // 进入目标锁定距离
+        case withinShootTongueDistance  // 进入发射舌头距离
+    }
+    
+    /// 嘴部动画状态
+    private enum MouthAnimationState {
+        case mouthClosed
+        case mouthMoving
+        case shootingTongue     // 发射舌头
+        case pullingBackTongue  // 收回舌头
+    }
     
     // MARK: - Initialization and Loading
     
     override init() {
         super.init()
         
-        // Load the environment map
+        // 加载环境地图
         self.lightingEnvironment.contents = UIImage(named: "art.scnassets/environment_blur.exr")!
         
-        // Load the chameleon
+        // 加载变色龙
         loadModel()
     }
     
@@ -57,92 +91,30 @@ class Chameleon: SCNScene {
         fatalError("init(coder:) has not been implemented")
     }
     
+    /// 加载模型
     private func loadModel() {
-        guard let virtualObjectScene = SCNScene(named: "chameleon", inDirectory: "art.scnassets") else {
-            return
-        }
+        guard let virtualObjectScene = SCNScene(named: "chameleon", inDirectory: "art.scnassets") else { return  }
         
+        // 包装节点
         let wrapperNode = SCNNode()
         for child in virtualObjectScene.rootNode.childNodes {
             wrapperNode.addChildNode(child)
         }
         self.rootNode.addChildNode(contentRootNode)
         contentRootNode.addChildNode(wrapperNode)
-        hide()
         
-        setupSpecialNodes()
-
-        setupShader()
-        preloadAnimations()
-        
-        
-        modelLoaded = true
     }
     
-    // MARK: - Public API
+    // MARK: - public api
+    func hide() {
+        contentRootNode.isHidden = true
+    }
     
     func show() {
         contentRootNode.isHidden = false
     }
     
-    func hide() {
-        contentRootNode.isHidden = true
-    }
-    
-    func isVisible() -> Bool {
-        return !contentRootNode.isHidden
-    }
-    
-    func setTransform(_ transform: simd_float4x4) {
-        contentRootNode.simdTransform = transform
-    }
-    
-    // MARK: - Turn left/right and idle animations
-    
-    private func preloadAnimations() {
-        idleAnimation = SCNAnimation.fromFile(named: "anim_idle", inDirectory: "art.scnassets")
-        idleAnimation?.repeatCount = -1
-        
-        turnLeftAnimation = SCNAnimation.fromFile(named: "anim_turnleft", inDirectory: "art.scnassets")
-        turnLeftAnimation?.repeatCount = 1
-        turnLeftAnimation?.blendInDuration = 0.3
-        turnLeftAnimation?.blendOutDuration = 0.3
-        
-        turnRightAnimation = SCNAnimation.fromFile(named: "anim_turnright", inDirectory: "art.scnassets")
-        turnRightAnimation?.repeatCount = 1
-        turnRightAnimation?.blendInDuration = 0.3
-        turnRightAnimation?.blendOutDuration = 0.3
-        
-        // Start playing idle animation.
-        if let anim = idleAnimation {
-            contentRootNode.childNodes[0].addAnimation(anim, forKey: anim.keyPath)
-        }
-    }
-    
-    private func playTurnAnimation(_ animation: SCNAnimation) {
-        var rotationAngle: Float = 0
-        if animation == turnLeftAnimation {
-            rotationAngle = Float.pi / 4
-        } else if animation == turnRightAnimation {
-            rotationAngle = -Float.pi / 4
-        }
-        
-        let modelBaseNode = contentRootNode.childNodes[0]
-        modelBaseNode.addAnimation(animation, forKey: animation.keyPath)
-        
-        chameleonIsTurning = true
-        
-        SCNTransaction.begin()
-        SCNTransaction.animationTimingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionLinear)
-        SCNTransaction.animationDuration = animation.duration
-        modelBaseNode.transform = SCNMatrix4Mult(modelBaseNode.presentation.transform, SCNMatrix4MakeRotation(rotationAngle, 0, 1, 0))
-        SCNTransaction.completionBlock = {
-            self.chameleonIsTurning = false
-        }
-        SCNTransaction.commit()
-    }
-    
-    
+    // MARK: - 转向和初始动画
     
 }
 
@@ -150,32 +122,9 @@ class Chameleon: SCNScene {
 
 extension Chameleon {
     
-    private func setupSpecialNodes() {
-        // Retrieve nodes we need to reference for animations.
-        geometryRoot = self.rootNode.childNode(withName: "Chameleon", recursively: true)
-       
-        skin = geometryRoot.geometry?.materials.first
+    /// 重置状态
+    private func resetState() {
         
-        // Fix materials
-        geometryRoot.geometry?.firstMaterial?.lightingModel = .physicallyBased
-        geometryRoot.geometry?.firstMaterial?.roughness.contents = "art.scnassets/textures/chameleon_ROUGHNESS.png"
-        let shadowPlane = self.rootNode.childNode(withName: "Shadow", recursively: true)
-        shadowPlane?.castsShadow = false
-
-    }
-    
-    private func setupShader() {
-        guard let path = Bundle.main.path(forResource: "skin", ofType: "shaderModifier", inDirectory: "art.scnassets"),
-            let shader = try? String(contentsOfFile: path, encoding: String.Encoding.utf8) else {
-                return
-        }
-        
-        skin.shaderModifiers = [SCNShaderModifierEntryPoint.surface: shader]
-        
-        skin.setValue(Double(0), forKey: "blendFactor")
-        skin.setValue(NSValue(scnVector3: SCNVector3Zero), forKey: "skinColorFromEnvironment")
-        
-        let sparseTexture = SCNMaterialProperty(contents: UIImage(named: "art.scnassets/textures/chameleon_DIFFUSE_BASE.png")!)
-        skin.setValue(sparseTexture, forKey: "sparseTexture")
     }
 }
+
