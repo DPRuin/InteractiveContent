@@ -154,6 +154,16 @@ extension Chameleon {
     
     /// 设置节点
     private func setupSpecialNodes() {
+        geometryRoot = self.rootNode.childNode(withName: "Chameleon", recursively: true)
+        head = self.rootNode.childNode(withName: "Neck02", recursively: true)
+        leftEye = self.rootNode.childNode(withName: "Eye_L", recursively: true)
+        rightEye = self.rootNode.childNode(withName: "Eye_R", recursively: true)
+        jaw = self.rootNode.childNode(withName: "Jaw", recursively: true)
+        tongueTip = self.rootNode.childNode(withName: "TongueTip_Target", recursively: true)
+        
+        skin = geometryRoot.geometry?.materials.first
+        
+        
         
     }
     
