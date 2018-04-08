@@ -151,6 +151,16 @@ class Chameleon: SCNScene {
         contentRootNode.isHidden = false
     }
     
+    /// 是否可见
+    func isVisible() -> Bool {
+        return !contentRootNode.isHidden
+    }
+    
+    // 设置移动
+    func setTransform(_ transform: simd_float4x4) {
+        contentRootNode.simdTransform = transform
+    }
+    
     // MARK: - 转向和初始动画
     private func preloadAnimations() {
         idleAnimation = SCNAnimation.fromFile(named: "anim_idle", inDirectory: "art.scnassets")
@@ -176,6 +186,34 @@ class Chameleon: SCNScene {
         rightEye.removeAllAnimations()
         chameleonIsTurning = false
         headIsMoving = false
+    }
+    
+    /// 播放转向动画
+    private func playTurnAnimation(_ animation: SCNAnimation) {
+        var rotationAngle: Float = 0
+        if animation == turnLeftAnimation {
+            rotationAngle = Float.pi / 4
+        } else if animation == turnRightAnimation {
+            rotationAngle = -Float.pi / 4
+        }
+        
+        let modelBaseNode = contentRootNode.childNodes[0]
+        modelBaseNode.addAnimation(animation, forKey: animation.keyPath)
+        
+        chameleonIsTurning = true
+        
+        // 事务动画
+        SCNTransaction.begin()
+        // 计时函数
+        SCNTransaction.animationTimingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionLinear)
+        SCNTransaction.animationDuration = animation.duration
+        // 矩阵乘法, 旋转
+        modelBaseNode.transform = SCNMatrix4Mult(modelBaseNode.presentation.transform, SCNMatrix4MakeRotation(rotationAngle, 0, 1, 0))
+        SCNTransaction.completionBlock = {
+            self.chameleonIsTurning = false
+        }
+        
+        SCNTransaction.commit()
     }
 }
 
