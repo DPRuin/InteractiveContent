@@ -163,9 +163,6 @@ extension Chameleon {
         
         skin = geometryRoot.geometry?.materials.first
         
-        
-        
-        
     }
     
     /// 重置状态
