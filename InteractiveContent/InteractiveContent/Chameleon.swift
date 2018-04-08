@@ -44,6 +44,7 @@ class Chameleon: SCNScene {
     private var focusNodeBasePosition = simd_float3(0, 0.1, 0.25)
     private var leftEyeTargetOffset = simd_float3()
     private var rightEyeTargetOffset = simd_float3()
+    /// 现在舌头位置
     private var currentTonguePosition = simd_float3()
     /// 相应吐舌头因子
     private var relativeTongueStickOutFactor: Float = 0
@@ -129,6 +130,11 @@ class Chameleon: SCNScene {
         
         // 设置节点
         setupSpecialNodes()
+        // 设置约束
+        setupConstraints()
+        
+        
+        modelLoaded = true
         
     }
     
@@ -151,6 +157,12 @@ class Chameleon: SCNScene {
 
 extension Chameleon {
     
+    /// 弧度
+    private func rad(_ deg: Float) -> Float {
+        return deg * Float.pi / 180
+    }
+    
+    
     
     /// 设置节点
     private func setupSpecialNodes() {
@@ -163,6 +175,69 @@ extension Chameleon {
         
         skin = geometryRoot.geometry?.materials.first
         
+        // fix materials
+        geometryRoot.geometry?.firstMaterial?.lightingModel = .physicallyBased
+        geometryRoot.geometry?.firstMaterial?.roughness.contents = "art.scnassets/textures/chameleon_ROUGHNESS.png"
+        let shadowPlane = self.rootNode.childNode(withName: "Shadow", recursively: true)
+        // 确认是否节点是否呈现阴影贴图，默认为yes
+        shadowPlane?.castsShadow = false
+        
+        // 设置视位置节点
+        focusOfTheHead.simdPosition = focusNodeBasePosition
+        focusOfLeftEye.simdPosition = focusNodeBasePosition
+        focusOfRightEye.simdPosition = focusNodeBasePosition
+        geometryRoot.addChildNode(focusOfTheHead)
+        geometryRoot.addChildNode(focusOfLeftEye)
+        geometryRoot.addChildNode(focusOfRightEye)
+    }
+    
+    /// 设置约束
+    private func setupConstraints() {
+        // 头部运动约束
+        let headConstraint = SCNLookAtConstraint(target: focusOfTheHead)
+        // 是否允许约束旋转
+        headConstraint.isGimbalLockEnabled = true
+        head.constraints = [headConstraint]
+        
+        // 眼部运动约束
+        let leftEyeLookAtConstraint = SCNLookAtConstraint(target: focusOfLeftEye)
+        leftEyeLookAtConstraint.isGimbalLockEnabled = true
+        
+        let rightEyeLookAtConstraint = SCNLookAtConstraint(target: focusOfRightEye)
+        rightEyeLookAtConstraint.isGimbalLockEnabled = true
+        
+        // 眼部旋转约束
+        let eyeRotationConstraint = SCNTransformConstraint(inWorldSpace: false) { (node, transform) -> SCNMatrix4 in
+            
+            var eulerX = node.presentation.eulerAngles.x
+            var eulerY = node.presentation.eulerAngles.y
+            
+            // x
+            if eulerX < self.rad(-20) { eulerX = self.rad(-20) }
+            if eulerX > self.rad(20) { eulerX = self.rad(20) }
+            // 绕y轴 旋转限制在5 - 150
+            if node.name == "Eye_R" {
+                if eulerY < self.rad(-150) { eulerY = self.rad(-150) }
+                if eulerY > self.rad(-5) { eulerY = self.rad(-5) }
+            } else {
+                if eulerY > self.rad(150) { eulerY = self.rad(150)}
+                if eulerY < self.rad(5) { eulerY = self.rad(5)}
+            }
+            
+            let tempNode = SCNNode()
+            tempNode.transform = node.presentation.transform
+            tempNode.eulerAngles = SCNVector3(x: eulerX, y: eulerY, z: 0)
+            return tempNode.transform
+            
+        }
+        
+        leftEye.constraints = [leftEyeLookAtConstraint, eyeRotationConstraint]
+        rightEye.constraints = [rightEyeLookAtConstraint, eyeRotationConstraint]
+
+        // 舌头位置
+        tongueTip.parent?.addChildNode(tongueRestPositionNode)
+        tongueRestPositionNode.transform = tongueTip.transform
+        currentTonguePosition = tongueTip.simdPosition
     }
     
     /// 重置状态
